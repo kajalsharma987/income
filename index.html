@@ -1,0 +1,589 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Official Certificate - Fixed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+      body {
+        background: #777;
+        margin: 0;
+        padding: 20px;
+        font-family: "Times New Roman", Times, serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .no-print {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 20px;
+        width: 210mm;
+        display: flex;
+        justify-content: center;
+        border-radius: 4px;
+      }
+      #certificate {
+        width: 210mm;
+        height: 296mm;
+        max-height: 296mm;
+        background: white;
+        padding: 9mm 13mm 6mm;
+        box-sizing: border-box;
+        position: relative;
+        color: #000;
+        border: 1.5px solid #000;
+        overflow: hidden;
+      }
+      .header-wrap {
+        display: flex;
+        border-bottom: 1px solid #000;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+      }
+      .header-content {
+        flex-grow: 1;
+        text-align: center;
+        padding-right: 45px;
+      }
+      .header-content p {
+        margin: 0;
+        font-size: 11.5px;
+        font-weight: bold;
+      }
+      .header-content h2 {
+        margin: 1px 0;
+        font-size: 14.5px;
+        letter-spacing: 0.3px;
+      }
+
+      .meta-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 11.5px;
+      }
+      /* Barcode fix for PDF */
+      .barcode-box {
+        margin-top: 5px;
+      }
+      .barcode-svg {
+        width: 180px;
+        height: 35px;
+        border: 0.5px solid #000;
+      }
+      .barcode-img {
+        width: 110px; /* barcode ki width */
+        height: 26px; /* barcode ki height */
+        display: block;
+        margin-top: 2px;
+      }
+
+      .barcode-number {
+        display: block;
+        width: 110px; /* SAME as barcode */
+        text-align: center;
+        /* text: bold; */
+        font-size: 9.5px;
+        /* letter-spacing: 2px; */
+        margin-top: 2px;
+      }
+
+      .app-side {
+        text-align: right;
+        line-height: 1.2;
+        font-size: 11.5px;
+      }
+      .app-side div {
+        margin-bottom: 5px;
+      }
+
+      .title-block {
+        text-align: center;
+        margin: 16px 0 12px;
+      }
+      .title-block h1 {
+        font-size: 12.5px;
+        text-decoration: underline;
+        font-weight: bold;
+      }
+
+      .middle-section {
+        font-size: 12.5px;
+        line-height: 1.6;
+        margin-top: 5px;
+      }
+      .row {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 3px;
+      }
+      .editable {
+        outline: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: text;
+        padding: 0 3px;
+      }
+      .eng-para {
+        margin-top: 14px;
+        text-align: justify;
+        line-height: 1.45;
+        font-size: 11.5px;
+      }
+
+      /* Pure footer area ko manage karne ke liye */
+      .footer-wrap {
+        display: flex;
+        justify-content: space-between; /* QR ko left aur Signature ko right bhejne ke liye */
+        align-items: flex-end; /* Dono ko bottom se align rakhega */
+        font-family: Arial, sans-serif;
+        padding: 6px 0 0;
+        width: 100%;
+      }
+
+      #qr-box {
+        width: 70px; /* QR code ka size yahan adjust karein */
+        height: 70px;
+        background-color: #eee; /* Sirf placeholder ke liye */
+        position: relative;
+        overflow: hidden;
+      }
+      .qr-plus {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin-left: -8px;
+        margin-top: -8px;
+        background: #fff;
+        border: 1px solid #000;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
+      .qr-plus::before,
+      .qr-plus::after {
+        content: "";
+        position: absolute;
+        background: #000;
+      }
+      .qr-plus::before {
+        width: 10px;
+        height: 2px;
+        top: 50%;
+        left: 50%;
+        margin-left: -5px;
+        margin-top: -1px;
+      }
+      .qr-plus::after {
+        width: 2px;
+        height: 10px;
+        top: 50%;
+        left: 50%;
+        margin-left: -1px;
+        margin-top: -5px;
+      }
+
+      .sig-section {
+        text-align: left; /* Text khud left-aligned rahega lekin box right mein hoga */
+      }
+
+      .sig-auth-title {
+        font-size: 11px;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .sig-container {
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .sig-valid-text {
+        font-size: 10.5px;
+        /* font-weight: bold; */
+        display: block;
+      }
+
+      .sig-details {
+        font-size: 7px;
+        line-height: 1.15;
+      }
+
+      .green-tick {
+        height: 42px;
+        margin-left: -5px; /* Tick ko details ke sath overlap karne ke liye */
+        margin-top: 3px;
+      }
+
+      .notes-area {
+        margin-top: 6px;
+        /* Line removed as requested */
+        padding-top: 5px;
+      }
+      .csc-footer {
+        position: static;
+        margin-top: 4px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9.5px;
+        font-style: italic;
+      }
+      .footer-block {
+        margin-top: 12px;
+      }
+
+      @media print {
+        .no-print {
+          display: none;
+        }
+        body {
+          background: #fff;
+          padding: 0;
+        }
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="no-print">
+      <button
+        onclick="savePDF()"
+        style="
+          padding: 10px 20px;
+          background: #000;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          font-weight: bold;
+        "
+      >
+        DOWNLOAD FINAL PDF
+      </button>
+    </div>
+
+    <div id="certificate">
+      <div class="header-wrap">
+        <div style="width: 70px">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/800px-Emblem_of_India.svg.png"
+            style="width: 60px"
+          />
+        </div>
+        <div class="header-content">
+          <p>অসম চৰকাৰ</p>
+          <h2>GOVERNMENT OF ASSAM</h2>
+          <p>চক্ৰ বিষয়া কাৰ্যালয়</p>
+          <p>
+            OFFICE OF THE CIRCLE OFFICER<br />
+            <span class="editable" contenteditable="true">TINSUKIA</span>
+          </p>
+          <!-- <br /> -->
+          <p>TINSUKIA DISTRICT</p>
+          <!-- <br/> -->
+          <p>(Assam e-District Project)</p>
+        </div>
+      </div>
+
+      <div class="meta-container">
+        <div class="barcode-side">
+          প্ৰমাণ পত্ৰ নং <br />
+          Certificate No. :
+          <span class="editable" id="certNo" contenteditable="true"
+            >12122025-001-15682285</span
+          ><br /><br />
+
+          <div class="barcode-box">
+            <img src="barcode.png" class="barcode-img" />
+          </div>
+
+          <span
+            class="editable barcode-number"
+            id="certNoBarcode"
+            contenteditable="true"
+          >
+            1212202500115682285
+          </span>
+        </div>
+        <div class="app-side">
+          <div>আবেদন নং</div>
+          <div>
+            Application No. :
+            <span class="editable" id="appNo" contenteditable="true">
+              SSDG/ED/INC/109435568
+            </span>
+          </div>
+          <div>
+            তাৰিখ / Date:
+            <span class="editable" id="issueDate" contenteditable="true"
+              >12-12-2025</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="title-block">
+        <p style="font-size: 12.5px; margin: 0">বার্ষিক আয়ৰ প্ৰমাণ পত্ৰ</p>
+        <h1>ANNUAL INCOME CERTIFICATE</h1>
+      </div>
+
+      <div class="middle-section">
+        <div class="row">
+          <span>ইয়াৰ দ্বাৰা প্ৰমাণ পত্ৰ দিয়া হ'ল যে</span>
+          <div style="flex-grow: 1; text-align: center">
+            <span class="editable" id="personName" contenteditable="true"
+              >PAVAN KUMAR</span
+            >
+          </div>
+          <span>ব পুত্ৰ / কন্যা / পত্নী / স্বামী</span>
+        </div>
+        <div class="row">
+          <div style="width: 320px; text-align: center">
+            <span class="editable" id="fatherName" contenteditable="true"
+              >SUKHVIR SINGH</span
+            >
+          </div>
+          <span>গাঁও/ নগৰ:</span>
+          <div style="flex-grow: 1; text-align: center">
+            <span class="editable" id="village" contenteditable="true"
+              >NOWSALIA GAON</span
+            >
+          </div>
+        </div>
+        <div class="row" style="justify-content: space-between">
+          <div>
+            মৌজা :
+            <span class="editable" id="mouza" contenteditable="true"
+              >RONGAGORA</span
+            >
+          </div>
+          <div>
+            চক্ৰ :
+            <span class="editable" id="circle" contenteditable="true"
+              >TINSUKIA</span
+            >
+          </div>
+          <div>
+            জিলা :
+            <span class="editable" id="district" contenteditable="true"
+              >JORHAT</span
+            >
+          </div>
+        </div>
+        <div class="row">
+          <span>মুঠ বার্ষিক আয়</span>
+          <div style="flex-grow: 1; text-align: center">
+            <span class="editable" id="incomeSource" contenteditable="true"
+              >CULTIVATION</span
+            >
+          </div>
+          <span
+            >ৰ পৰা Rs.
+            <span class="editable" id="amount" contenteditable="true"
+              >3,00,000</span
+            ></span
+          >
+        </div>
+        <div class="row">
+          <span
+            >(Rupees
+            <span class="editable" id="amountWords" contenteditable="true"
+              >Three Lakh</span
+            >
+            ) only</span
+          >
+          <div style="flex-grow: 1; text-align: right">টকা হয়।</div>
+        </div>
+
+        <div class="eng-para">
+          This is to certify that
+          <b
+            ><span class="editable" contenteditable="true">PAVAN KUMAR</span></b
+          >
+          son/ daughter/ wife/ husband of
+          <b
+            ><span class="editable" contenteditable="true"
+              >SUKHVIR SINGH</span
+            ></b
+          >
+          Village / Town
+          <b
+            ><span class="editable" contenteditable="true"
+              >NOWSALIA GAON</span
+            ></b
+          >
+          Mouza
+          <b><span class="editable" contenteditable="true">RONGAGORA</span></b>
+          Circle
+          <b><span class="editable" contenteditable="true">TINSUKIA</span></b>
+          District
+          <b><span class="editable" contenteditable="true">JORHAT</span></b>
+          whose total annual income from
+          <b
+            ><span class="editable" contenteditable="true">CULTIVATION</span></b
+          >
+          is Rs.
+          <b><span class="editable" contenteditable="true">3,00,000</span></b>
+          (Rupees
+          <b><span class="editable" contenteditable="true">Three Lakh</span></b
+          >) only.
+        </div>
+        <div style="margin-top: 18px; font-size: 12.5px; line-height: 1.5">
+          এই প্ৰমাণ পত্ৰ সংশ্লিষ্ট এল এমৰ প্ৰতিবেদন ভিত্তিত প্ৰদান কৰা হ'ল /
+          This certificate is issued on the basis of concerned L.M's report.
+
+          <br /><br />
+
+          This certificate is valid for one year from the date of issue
+        </div>
+      </div>
+      <div class="footer-block">
+        <div class="footer-wrap">
+          <div id="qr-box">
+            <!-- <img src="qr_code_image.png" alt="QR Code" style="width: 100%" /> -->
+            <div class="qr-plus" aria-hidden="true"></div>
+          </div>
+
+          <div class="sig-section">
+            <span class="sig-auth-title">Signature of Approving Authority</span>
+
+            <div class="sig-container">
+              <div class="text-side">
+                <span class="sig-valid-text">Signature valid</span>
+                <div class="sig-details">
+                  Digitally Signed.<br />
+                  Name:
+                  <span class="editable" contenteditable="true"
+                    >KRITIKA SARMAH</span
+                  ><br />
+                  Date:
+                  <span class="editable" contenteditable="true"
+                    >12-Dec-2025 12:41:45</span
+                  ><br />
+                  Reason: eDistrict<br />
+                  Location: Assam
+                </div>
+              </div>
+              <img src="GreenTick.png" class="green-tick" alt="Valid" />
+            </div>
+          </div>
+        </div>
+
+        <div class="notes-area">
+          <span
+            style="
+              font-weight: bold;
+              text-decoration: underline;
+              font-size: 11px;
+            "
+            >NOTE :</span
+          >
+          <ol
+            style="
+              font-size: 10.5px;
+              font-style: italic;
+              line-height: 1.4;
+              margin: 5px 0 0 15px;
+              padding: 0;
+            "
+          >
+            <li>
+              This certificate is digitally signed and therefore needs no
+              physical signature.
+            </li>
+            <li>
+              Authenticity can be verified from
+              http://www.assam.gov.in/certificate-verification.
+            </li>
+            <li>
+              This certificate is legally valid as per the Information
+              Technology Act 2000.
+            </li>
+            <li>Tampering of this certificate will attract penal action.</li>
+          </ol>
+        </div>
+
+        <div class="csc-footer">
+          <div>
+            CSC Name :
+            <span class="editable" contenteditable="true"
+              >Tinsukia,SRIPURIA TINGRAI</span
+            >
+          </div>
+          <div>
+            CSC ID :
+            <span class="editable" contenteditable="true">AS247123630012</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      function generateQR() {
+        // 1. Aap jo bhi edit karengi, ye wahi naya data uthayega
+        const data = {
+          certNo: document.getElementById("certNo").innerText.trim(),
+          appNo: document.getElementById("appNo").innerText.trim(),
+          date: document.getElementById("issueDate").innerText.trim(),
+          name: document.getElementById("personName").innerText.trim(),
+          father: document.getElementById("fatherName").innerText.trim(),
+          village: document.getElementById("village").innerText.trim(),
+          mouza: document.getElementById("mouza").innerText.trim(),
+          circle: document.getElementById("circle").innerText.trim(),
+          district: document.getElementById("district").innerText.trim(),
+          income: document.getElementById("incomeSource").innerText.trim(),
+          amount: document.getElementById("amount").innerText.trim(),
+          words: document.getElementById("amountWords").innerText.trim(),
+        };
+
+        // 2. Data ko URL mein pack karna
+        const jsonData = encodeURIComponent(JSON.stringify(data));
+
+        // IMPORTANT: Agar laptop pe chala rahi hain toh verify.html ka full path chahiye
+        // Lekin jab online dalengi toh sirf "verify.html?data=" chalega
+        const verifyURL = "verify.html?data=" + jsonData;
+
+        // 3. QR Code ko naye data ke saath banana
+        const qrContainer = document.getElementById("qr-box");
+        qrContainer.innerHTML = ""; // Purana QR hatane ke liye
+
+        new QRCode(qrContainer, {
+          text: verifyURL,
+          width: 70,
+          height: 70,
+          correctLevel: QRCode.CorrectLevel.M, // Medium level taaki zyada data handle ho sake
+        });
+      }
+
+      // Jab aap PDF button dabayengi, pehle QR update hoga phir download
+      function savePDF() {
+        generateQR();
+        setTimeout(() => {
+          const element = document.getElementById("certificate");
+          const opt = {
+            margin: 0,
+            filename:
+              "Certificate_" +
+              document.getElementById("personName").innerText +
+              ".pdf",
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2 },
+            pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          };
+          html2pdf().set(opt).from(element).save();
+        }, 500);
+      }
+
+      // Pehli baar page load hote hi QR bana de
+      window.onload = () => {
+        generateQR();
+      };
+    </script>
+  </body>
+</html>
